@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>حاسبة الضرائب على الدخل - 3D Neon</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+    body {
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+      text-align: right;
+      margin: 40px;
+      background: radial-gradient(circle at center, #000000, #0f0f0f);
+      color: #fff;
+    }
+    .container {
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #0ff;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 700px;
+      margin: auto;
+      box-shadow: 0 0 25px #0ff, 0 0 40px #0ff;
+    }
+    label, select, input, button {
+      font-size: 18px;
+      margin-bottom: 10px;
+      width: 100%;
+      display: block;
+    }
+    input, select {
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #111;
+      color: #0ff;
+      box-shadow: inset 0 0 10px #0ff;
+    }
+    button {
+      padding: 10px;
+      background-color: #111;
+      color: #0ff;
+      border: 2px solid #0ff;
+      margin-top: 15px;
+      cursor: pointer;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #0ff;
+      transition: all 0.3s ease-in-out;
+    }
+    button:hover {
+      background-color: #0ff;
+      color: #000;
+      box-shadow: 0 0 20px #0ff;
+    }
+    .result {
+      margin-top: 20px;
+      background-color: #111;
+      padding: 20px;
+      border-radius: 15px;
+      border: 1px solid #0ff;
+      box-shadow: inset 0 0 10px #0ff;
+    }
+    h2, h3 {
+      text-align: center;
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>حاسبة الضرائب على الدخل السنوي</h2>
+
+    <label for="annualIncome">إجمالي الدخل السنوي (جنيه):</label>
+    <input type="number" id="annualIncome" placeholder="اكتب الدخل هنا" />
+
+    <label for="deductions">المبالغ المستقطعة (مثل تأمينات):</label>
+    <input type="number" id="deductions" placeholder="اكتب المبالغ المستقطعة هنا" />
+
+    <button onclick="calculateTax()">احسب الضريبة</button>
+
+    <div class="result" id="result" style="display:none;">
+      <h3>نتائج الضريبة</h3>
+      <p><strong>صافي الدخل الخاضع للضريبة:</strong> <span id="netTaxable"></span> جنيه</p>
+      <p><strong>الضريبة المستحقة:</strong> <span id="taxDue"></span> جنيه</p>
+      <div id="taxDetails"></div>
+    </div>
+
+    <div style="margin-top: 30px; padding-top: 15px; border-top: 1px dashed #0ff; font-size: 14px; text-align: center; color: #0ff;">
+      تم التصميم بواسطة: أحمد مصطفى إبراهيم<br>
+      📞 01225155329 | 📧 a12345.mostafa@gmail.com
+    </div>
+  </div>
+
+<script>
+function calculateTax() {
+  const annualIncome = parseFloat(document.getElementById("annualIncome").value) || 0;
+  const deductions = parseFloat(document.getElementById("deductions").value) || 0;
+
+  const exemption = 20000; // حد الإعفاء
+  let netTaxable = annualIncome - deductions;
+
+  // إذا كان حجم الأعمال السنوية 600000 أو أقل، يتم خصم الإعفاء
+  if (annualIncome <= 600000) {
+    netTaxable -= exemption; // خصم الإعفاء
+  }
+
+  if (netTaxable < 0) netTaxable = 0;
+
+  let taxDue = 0;
+  let detail = "";
+
+  // الشرائح الضريبية الجديدة
+  let brackets = [
+    { limit: 600000, rate: 0, name: "معفاة" }, // حتى 600,000
+    { limit: 700000, rate: 0.1, name: "10%" }, // يبدأ من 700,000
+    { limit: 800000, rate: 0.15, name: "15%" }, // يبدأ من 800,000
+    { limit: 900000, rate: 0.20, name: "20%" }, // يبدأ من 900,000
+    { limit: 1000000, rate: 0.225, name: "22.5%" }, // يبدأ من 1,000,000
+    { limit: 1200000, rate: 0.25, name: "25%" }, // يبدأ من 1,200,000
+    { limit: Infinity, rate: 0.275, name: "27.5%" } // أكثر من 1,200,000
+  ];
+
+  let remaining = netTaxable;
+  let lastLimit = 0;
+  for (let b of brackets) {
+    if (remaining <= 0) break;
+    let taxable = Math.min(remaining, b.limit - lastLimit);
+    let portion = taxable * b.rate;
+    taxDue += portion;
+    if (taxable > 0) {
+      detail += `<p>${b.name} على ${taxable.toFixed(2)} = ${portion.toFixed(2)} جنيه</p>`;
+    }
+    remaining -= taxable;
+    lastLimit = b.limit;
+  }
+
+  document.getElementById("netTaxable").textContent = netTaxable.toFixed(2);
+  document.getElementById("taxDue").textContent = taxDue.toFixed(2);
+  document.getElementById("taxDetails").innerHTML = detail;
+  document.getElementById("result").style.display = "block";
+}
+</script>
+
+</body>
+</html>
